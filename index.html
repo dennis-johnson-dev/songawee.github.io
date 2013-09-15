@@ -1,13 +1,13 @@
-<!DOCTYPE>
-<html>
-<head>
-  <link rel="stylesheet" href="style.css" type="text/css" />
-</head>
-<body>
+---
+layout: default
+title: www.songawee 
+---
 
-<h1>Hello World</h1>
-<div class="code">
-  <script src="https://gist.github.com/songawee/6417176.js"></script>
+<div id="home">
+  <h1>Blog Posts</h1>
+  <ul class="posts">
+    {% for post in site.posts %}
+      <li><span>{{ post.date | date_to_string }}</span> &raquo; <a href="{{ post.url }}">{{ post.title }}</a></li>
+    {% endfor %}
+  </ul>
 </div>
-</body>
-</html>
