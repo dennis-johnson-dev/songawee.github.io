@@ -34,7 +34,8 @@ Let's configure our package.json so we can run `npm start` and `npm test`. Here 
 We can place our server in a directory named `server` and call it `server.js`. We can create a data fixture to simulate the result of some data fetching.
 
 ```js
-//./spec/fixtures/data.js
+// ./spec/fixtures/data.js
+
 module.exports = [
   {
     message: 'hello'
@@ -43,9 +44,13 @@ module.exports = [
     message: 'world'
   }
 ];
+
 ```
 
+<br />
+
 ```js
+
 // ./server/server.js
 var Hapi = require("hapi");
 var data = require("../spec/fixtures/data");
@@ -89,9 +94,9 @@ module.exports = {
 
 ```
 
-Our server has two routes. One that just replies with a simple string and one that replies with some data specified by the user. One important thing to mention about routes in hapi.js is that it doesn't matter which order you add them to the routes array. They are sorted by specificity as mentioned [here](http://hapijs.com/api#path-matching-order).
+Our server has two routes. One that just replies with a simple string and one that replies with some data specified by the user. One important thing to mention about routes in hapi.js is that it doesn't matter in which order you add them to the routes array. They are sorted by specificity as mentioned [here](http://hapijs.com/api#path-matching-order).
 
-We can see in the `getData` route that *index* is a user specified string. We can grab this value off of the request with `request.params.index`. We check if it is a valid index of the data array and respond accordingly. hapi.js will infer the correct MIME type for your asset. So if you `reply('hi')`, it will respond with *'text/html'* and if you `reply({ some: 'object' })`, it will respond with *'application/json'*.
+We can see in the `getData` route that *index* is a user specified string. We can grab this value off of the request with `request.params.index`. We check if it is a valid index of the data array and respond accordingly. hapi.js will infer the correct MIME type for your asset. If your server responds with `reply('hi')`, it will respond with *'text/html'* and if it responds with `reply({ some: 'object' })`, it will respond with *'application/json'*.
 
 Now, we can set up a wrapper for our server. This will allow us to pass parameters (such as port number) into the server. This is useful for testing and keeping the server api clean. We will put this wrapper in `index.js`.
 
@@ -135,11 +140,11 @@ describe('Health Check', function () {
 
 ```
 
-This test uses a hapi.js `server.inject` function off of the server object that injects an HTTP request in the form of options and gives us a response object to make assertions on. In this case, we inspect that we receive a 200 status code and a result of 'hello'.
+This test uses a hapi.js `server.inject` function off of the server object that injects an HTTP request in the form of options and gives us a response object to make assertions on. In this case, we inspect that we receive a 200 status code and a result of 'hello world'.
 
 >Note that we must call the `done` function at the end of our assertions to tell jasmine that this is an asynchronous test and we need to wait before moving onto the next test. If this line is missing, a timeout error will occur.
 
-Now we can look at the tests for the `getData` function.
+Now, we can look at the tests for the `getData` function.
 
 ```js
 // ./spec/getDataSpec.js
