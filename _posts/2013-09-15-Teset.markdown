@@ -1,8 +1,0 @@
----
-layout: post
-title:  "Teset!"
-date:   2013-09-15 12:49:55
-categories: jekyll update
----
-
-This is a teset post that tesets out Jekyll
