@@ -6,7 +6,7 @@ date:   2015-2-5
 categories: jekyll update
 ---
 
-In this post, we will cover how to test a server built with [hapi.js](http://hapijs.com/) using [jasmine](https://github.com/mhevery/jasmine-node). Our server will consist of a few simple routes that we will then test with lab. The code of this example can be found [here](https://github.com/songawee/testing_hapijs).
+In this post, we will cover how to test a server built with [hapi.js](http://hapijs.com/) using [jasmine](https://github.com/mhevery/jasmine-node). Our server will consist of a few simple routes that we will then test. The code of this example can be found [here](https://github.com/songawee/testing_hapijs).
 
 First, let's get our project set up and install our dependencies. Here is what we will need:
 
