@@ -9,3 +9,7 @@ img {
   max-width: 100%;
 }
 
+.highlight .err {
+  color: inherit;
+  background-color: inherit;
+}

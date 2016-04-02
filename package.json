@@ -1,0 +1,22 @@
+{
+  "name": "songawee.github.io",
+  "version": "1.0.0",
+  "description": "songawee.github.io ==================",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/songawee/songawee.github.io.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/songawee/songawee.github.io/issues"
+  },
+  "homepage": "https://github.com/songawee/songawee.github.io#readme",
+  "dependencies": {
+    "github-markdown-css": "^2.2.1"
+  }
+}
