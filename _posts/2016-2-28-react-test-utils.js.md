@@ -3,6 +3,7 @@ layout: post
 comments: true
 title:  "React Test utils"
 date:   2016-2-28
+published: false
 ---
 
 # A journeyperson's guide to testing React components
