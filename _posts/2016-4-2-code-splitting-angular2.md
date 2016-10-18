@@ -8,23 +8,43 @@ published: true
 
 [Code splitting](https://webpack.github.io/docs/code-splitting.html) generally refers to splitting up your JavaScript application into multiple files and only load what you need when you need it. This is an optimzation that decreases initial download size which improves the initial startup time of your app. The following techniques illustrate how we can achieve this with Webpack 2 beta and Angular 2. The code for this example can be found at <https://github.com/songawee/angular2_code_splitting>.
 
-If you have an application and bundle it to say `main.js`, you would then need to add a script tag pointing to `main.js` in your HTML for that code to be executed in the browser. If we wanted to split our app into two pieces - `main.js` and `foo.js`, this would require two script tags. When scaled out to ten "chunks" or so, this approach leads to requiring all of the files to be downloaded initially as ten separate script tags which can be much less performant than including them all in one download.
+As JavaScript applications gain more and more features, so grows the filesize of the application bundle. The larger the bundle, the longer it takes for the user to get to the app. Not only do users need to download all of the information, they need to parse it as well. Another approach is bundling a very small initial bundle that contains only the most relevant code for that particular view and then dynamically load the other modules at a later time. This separation of modules can bring down application load times and increase user productivity.
 
-Another approach to additional scripts tags for your app is to allow Webpack to break up your app for you based on split points that you define throughout your application code.
-
-Webpack 2 provides us with `System.import('../path/to/file.js')` syntax to achieve loading the additional chunk via a Promise based api. Webpack processes `System.import` by compiling `file.js` and its dependencies into a separate file and then dynamically loading that code when you resolve that import promise. `System.import` is actually the [loader](https://whatwg.github.io/loader/) part of the ES modules specificiation and we are able to use the syntax with Webpack as a polyfill.
+Webpack 2 provides us with `System.import('../path/to/file.js')` syntax to achieve loading the additional chunks via a Promise based api. Webpack processes `System.import` by compiling `file.js` and its dependencies into a separate file and then dynamically loading that code when you resolve that import promise. `System.import` is actually the [loader](https://whatwg.github.io/loader/) part of the ES modules specificiation and we are able to use the syntax with Webpack as a polyfill.
 
 ```js
-  const importedChunk = System.import('./foo').then((foo) => foo);
+  const importedChunk = System.import('./foo').then((foo) => foo.default);
 ```
 
-Now we have a way to split and load the pieces of our application, but we still need to know where to spilt. It ultimately depends on your app, but it's generally a good idea to split up your app based on views or pages and load the chunks dynamically on navigation. With single page apps, you can think of a main page and profile page and loading the code for the profile page when you navigate from the main page.
+We have a way to split and load the pieces of our application, but we still need to know where to split. It ultimately depends on your app, but it's generally a good idea to split up your app based on views or pages and load the additional chunks dynamically on navigation. With single page apps, you can think of a main page and profile page and loading the code for the profile page when you navigate from the main page.
 
 Let's say we have the following example Angular 2 application.
 
-# TODO add link to repo
+#### AppModule.ts
 
-#### App.ts
+```js
+// AppModule.ts
+import { routes } from './Routing';
+
+import { NgModule } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+
+import AppComponent from './AppComponent';
+import InlineComp from './InlineComp';
+
+@NgModule({
+  declarations: [
+    AppComponent,
+    InlineComp
+  ],
+  imports: [ BrowserModule, routes ],
+  bootstrap: [ AppComponent ]
+})
+export default class App {}
+
+```
+
+#### AppComponent.ts
 
 ```js
 // AppComponent.ts
@@ -44,17 +64,39 @@ export default class AppComponent {}
 
 ```js
 // InlineSubComp.ts
-import { Component } from 'angular2/core';
+import { Component } from '@angular/core';
 
 @Component({
-  selector: 'inline-sub-comp',
-  template: `<div>This component was loaded inline.</div>`
+  selector: 'inline-comp',
+  template: `
+    <div>
+      <p>This component is the default component and was loaded inline.</p>
+    </div>
+  `
 })
-export default class InlineSubComp {}
-
+export default class InlineComp {}
 ```
 
-This is a really simple application using Angular's routing solution that just puts some text on the page. We define the root path to look for in the URL and when we visit that page, we are shown the output of the App component with `InlineSubComp` rendered into the `<router-outlet>` directive. `InlineSubComp` is downloaded as part of the application bundle on the initial download.
+#### Routing.ts
+
+```js
+// Routing.ts
+import { ModuleWithProviders } from '@angular/core';
+import { Routes, RouterModule } from '@angular/router';
+
+import InlineComp from './InlineComp';
+
+const appRoutes: Routes = [
+  {
+    path: '',
+    component: InlineComp
+  }
+];
+
+export const routes: ModuleWithProviders = RouterModule.forRoot(appRoutes);
+```
+
+This is a really simple application using Angular 2's routing solution that just puts some text on the page. We have configured the routing so that when a user navigates to `/`, we render `InlineComp` within the `router-outlet` in `AppComponent.ts`.
 
 The result is:
 
@@ -64,8 +106,9 @@ Now, let's load the following component on demand to replace the inline componen
 
 ```js
 // DynamicSubComp.ts
-import { Component } from 'angular2/core';
-import './styles/DynamicSubComp.scss';
+import { Component, NgModule } from '@angular/core';
+import { RouterModule } from '@angular/router';
+import '../styles/DynamicSubComp.scss';
 
 @Component({
   selector: 'dynamic-sub-comp',
@@ -76,7 +119,24 @@ import './styles/DynamicSubComp.scss';
     </div>
   `
 })
-export default class DynamicSubComp {}
+class DynamicSubComp {}
+
+export const routes = [
+  { path: '', component: DynamicSubComp, pathMatch: 'full' }
+];
+
+@NgModule({
+  declarations: [
+    DynamicSubComp
+  ],
+  imports: [
+    RouterModule.forChild(routes)
+  ]
+})
+export default class DynamicModule {
+  static routes = routes;
+}
+
 ```
 
 <br />
@@ -111,7 +171,7 @@ Let's add the link in the App component for users to click to add the dynamic co
 By defining an [AsyncRoute](https://angular.io/docs/js/latest/api/router/AsyncRoute-class.html) in our RouteConfig decorator, we just need to provide a function that returns a promise as the `loader` config for that route. Now, we have a place to use the `System.import()` syntax to return a promise that contains our component.
 
 ```js
-// App.ts
+// AppModule.ts
 new AsyncRoute({
   path: '/sub',
   loader: () => System.import('./DynamicSubComp').then((comp: any) => {
