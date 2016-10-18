@@ -6,13 +6,13 @@ date:   2016-4-2
 published: true
 ---
 
-[Code splitting](https://webpack.github.io/docs/code-splitting.html) generally refers to splitting up your JavaScript application into multiple files and only load what you need when you need it. This is an optimzation that decreases initial download size which improves the initial startup time of your app. The following techniques illustrate how we can achieve this with Webpack 2 beta and Angular 2 beta. The code for this example can be found at <https://github.com/songawee/angular2_code_splitting>.
+[Code splitting](https://webpack.github.io/docs/code-splitting.html) generally refers to splitting up your JavaScript application into multiple files and only load what you need when you need it. This is an optimzation that decreases initial download size which improves the initial startup time of your app. The following techniques illustrate how we can achieve this with Webpack 2 beta and Angular 2. The code for this example can be found at <https://github.com/songawee/angular2_code_splitting>.
 
-If you have an application and bundle it to say `main.js`, you would then need to add a script tag pointing to `main.js` for that code to be executed in the browser. If we wanted to split our app into two pieces - `main.js` and `foo.js`, this would require two script tags. When scaled out to ten "chunks" or so, this approach leads to requiring all of the files to be downloaded initially as ten separate script tags which can be much less performant than including them all in one download.
+If you have an application and bundle it to say `main.js`, you would then need to add a script tag pointing to `main.js` in your HTML for that code to be executed in the browser. If we wanted to split our app into two pieces - `main.js` and `foo.js`, this would require two script tags. When scaled out to ten "chunks" or so, this approach leads to requiring all of the files to be downloaded initially as ten separate script tags which can be much less performant than including them all in one download.
 
 Another approach to additional scripts tags for your app is to allow Webpack to break up your app for you based on split points that you define throughout your application code.
 
-Webpack 2 provides us with `System.import('../path/to/file.js')` synxtax to achieve loading the additional chunk via a Promise based api. Webpack processes `System.import` by compiling `file.js` and its dependencies into a separate file and then dynamically loading that code when you resolve that import promise. `System.import` is actually the [loader](https://whatwg.github.io/loader/) part of the ES modules specificiation and we are able to use the syntax with Webpack as a polyfill.
+Webpack 2 provides us with `System.import('../path/to/file.js')` syntax to achieve loading the additional chunk via a Promise based api. Webpack processes `System.import` by compiling `file.js` and its dependencies into a separate file and then dynamically loading that code when you resolve that import promise. `System.import` is actually the [loader](https://whatwg.github.io/loader/) part of the ES modules specificiation and we are able to use the syntax with Webpack as a polyfill.
 
 ```js
   const importedChunk = System.import('./foo').then((foo) => foo);
@@ -22,28 +22,22 @@ Now we have a way to split and load the pieces of our application, but we still 
 
 Let's say we have the following example Angular 2 application.
 
+# TODO add link to repo
+
 #### App.ts
 
 ```js
-// App.ts
-import { Component } from 'angular2/core';
-import { RouteConfig, ROUTER_DIRECTIVES } from 'angular2/router';
-import InlineSubComp from './InlineSubComp';
+// AppComponent.ts
+import { Component } from '@angular/core';
 
 @Component({
   selector: 'yo',
   template: `
-  <div>
-    <h1>Code Splitting in Angular 2</h1>
+    <h1>yo</h1>
     <router-outlet></router-outlet>
-  </div>
-  `,
-  directives: [ ROUTER_DIRECTIVES ]
+  `
 })
-@RouteConfig([
-  { path: '/', name: 'Root', component: InlineSubComp }
-])
-export default class App {}
+export default class AppComponent {}
 ```
 
 #### InlineComp.ts
