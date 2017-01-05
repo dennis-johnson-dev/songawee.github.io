@@ -20,83 +20,81 @@ We have a way to split and load the pieces of our application, but we still need
 
 Let's say we have the following example Angular 2 application.
 
-#### AppModule.ts
+#### app.module.ts
 
 ```js
-// AppModule.ts
+// app.module.ts
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
-import { routes } from './Routing';
+import { routes } from './app-routing.module';
 
-import AppComponent from './AppComponent';
-import InlineComp from './InlineComp';
+import AppComponent from './app.component';
+import InlineComponent from './inline.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    InlineComp
+    InlineComponent
   ],
   imports: [ BrowserModule, routes ],
   bootstrap: [ AppComponent ]
 })
 export default class AppModule {}
-
 ```
 
-#### AppComponent.ts
+#### app.component.ts
 
 ```js
-// AppComponent.ts
+// app.component.ts
 import { Component } from '@angular/core';
 
 @Component({
   selector: 'yo',
   template: `
-    <h1>yo</h1>
+    <h1>Code Splitting in Angular 2</h1>
     <router-outlet></router-outlet>
   `
 })
 export default class AppComponent {}
 ```
 
-#### InlineComp.ts
+#### inline.component.ts
 
 ```js
-// InlineSubComp.ts
+// inline.component.ts
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'inline-comp',
+  selector: 'inline-component',
   template: `
-    <div>
-      <p>This component is the default component and was loaded inline.</p>
-    </div>
-  `
+  <div>
+    <p>This component is the default component and was loaded inline.</p>
+  </div>`
 })
-export default class InlineComp {}
+export default class InlineComponent {}
 ```
 
-#### Routing.ts
+#### app-routing.module.ts
 
 ```js
-// Routing.ts
+// app-routing.module.ts
 import { ModuleWithProviders } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 
-import InlineComp from './InlineComp';
+import InlineComponent from './inline.component';
 
 const appRoutes: Routes = [
   {
     path: '',
-    component: InlineComp
+    component: InlineComponent
   }
 ];
 
 export const routes: ModuleWithProviders = RouterModule.forRoot(appRoutes);
 ```
 
-This is a really simple application using Angular 2's routing solution that just puts some text on the page. We have configured the routing so that when a user navigates to `/`, we render `InlineComp` within the `router-outlet` in `AppComponent.ts`.
+This is a really simple application using Angular 2's routing solution that just puts some text on the page. We have configured the routing so that when a user navigates to `/`, we render `InlineComponent` within the `router-outlet` in `AppComponent.ts`.
 
 The result is:
 
@@ -104,15 +102,16 @@ The result is:
 
 Now, let's load the following component on demand to replace the inline component when a user clicks a link.
 
-```js
-// DynamicSubComp.ts
-import { Component, NgModule } from '@angular/core';
-import { RouterModule } from '@angular/router';
+#### dynamic.component.ts
 
-import '../styles/DynamicSubComp.scss';
+```js
+// dynamic.component.ts
+import { Component } from '@angular/core';
+
+import '../styles/DynamicComponent.scss';
 
 @Component({
-  selector: 'dynamic-sub-comp',
+  selector: 'dynamic-component',
   template: `
     <div class="addMargin">
       <div><strong>Sub Sandwiches!</strong></div>
@@ -120,82 +119,104 @@ import '../styles/DynamicSubComp.scss';
     </div>
   `
 })
-class DynamicSubComp {}
-
-export const routes = [
-  { path: '', component: DynamicSubComp, pathMatch: 'full' }
-];
-
-@NgModule({
-  declarations: [
-    DynamicSubComp
-  ],
-  imports: [
-    RouterModule.forChild(routes)
-  ]
-})
-export default class DynamicModule {
-  static routes = routes;
-}
-
+export default class DynamicComponent {}
 ```
 
-<br />
+#### DynamicComponent.scss
 
 ```css
-/* DynamicSubComp.scss */
+/* DynamicComponent.scss */
 .addMargin {
   margin: 10px;
 }
 ```
 
+Notice also that we're additionally importing a `.scss` file. This is made possible by using the [sass-loader](https://github.com/jtangelder/sass-loader). The Sass imported into this module will be bundled together with the JS and loaded on demand as well.
+
 Using [Angular 2's modules](https://angular.io/docs/ts/latest/guide/ngmodule.html), we can encapsulate sub routes and dependencies in NgModules. In this way, when we resolve this chunk, we are also resolving its code dependencies as well as defining all of the sub routes associated with this module.
 
-Notice also that we're additionally importing a `.scss` file. This is made possible by using the [sass-loader](https://github.com/jtangelder/sass-loader). The Sass imported into this module will be bundled together with the JS and loaded on demand as well.
+#### dynamic.module.ts
+
+```js
+// dynamic.module.ts
+import { NgModule } from '@angular/core';
+
+import { routes } from './dynamic-routing.module';
+
+import DynamicComponent from './dynamic.component';
+
+@NgModule({
+  declarations: [ DynamicComponent ],
+  imports: [ routes ]
+})
+export default class DynamicModule {
+  static routes = routes;
+}
+```
+
+#### dynamic-routing.component.ts
+
+```js
+// dynamic-routing.module.ts
+import { ModuleWithProviders } from '@angular/core';
+import { Routes, RouterModule } from '@angular/router';
+
+import DynamicComponent from './dynamic.component';
+
+const dynamicRoutes: Routes = [
+  { path: '', component: DynamicComponent, pathMatch: 'full' }
+];
+
+export const routes: ModuleWithProviders = RouterModule.forChild(dynamicRoutes);
+```
+> Note: When defining sub modules, it is important to use `RouterModule.forChild` instead of `RouterModule.forRoot`.
+
 
 Let's add the link in the inline component for users to click to add the dynamic component.
 
 ```js
 @Component({
-  selector: 'inline-comp',
+  selector: 'inline-component',
   template: `
   <div>
     <p>This component is the default component and was loaded inline.</p>
     <a routerLink="/dynamic" routerLinkActive="active">Load a dynamic component</a>
   </div>`
 })
-export default class InlineComp {}
+export default class InlineComponent {}
 ```
 
-Note that the dynamic component will eventually be rendered through the <router-outlet> tag in AppComponent.
+Note that the dynamic component will eventually be rendered through the `<router-outlet>` tag in AppComponent.
 
 By defining a route with a `loadChildren` property, we have a handle to load another Angular module asynchronously. Now, we have a place to use the `System.import()` syntax to return a promise that contains our component.
 
+#### app-routing.ts
+
 ```js
-// Routing.ts
+// app-routing.ts
 const appRoutes: Routes = [
   {
     path: 'dynamic',
     loadChildren: () => {
-      return System.import('./DynamicSubComp').then((comp: any) => {
+      return System.import('./dynamic.module').then((comp: any) => {
         return comp.default;
       });
     }
   },
   {
     path: '',
-    component: InlineComp
+    component: InlineComponent
   }
 ];
 ```
 
-Now, when we visit the `/dynamic` path from clicking the link in InlineComp, Angular will know to resolve this Promise before trying to render anything for that route.
+Now, when we visit the `/dynamic` path from clicking the link in InlineComponent, Angular will know to resolve this Promise before trying to render anything for that route.
 
 With ES2015 modules, we use the `default` export off of our component and are now loading the component asynchronously! If you have other exports, you can reference them similarly i.e.
 
 ```js
 loadChildren: () => {
-  return System.import('./DynamicSubComp').then((comp: any) => {
+  return System.import('./dynamic.module').then((comp: any) => {
     return comp.otherExport;
   });
 }
@@ -203,7 +224,7 @@ loadChildren: () => {
 
 The result is:
 
-![Dynamic Comp](/img/dynamic.gif)
+![Dynamic Component](/img/dynamic.gif)
 
 Notice how the `0.bundle.js` file is downloaded separately!
 
